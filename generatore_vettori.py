@@ -5,6 +5,7 @@ import json
 import csv
 import instaloader
 from instaloader import Post
+from yolo_model import YoloModel
 
 # Parametri 
 # PATH_PUBBLICITARIE="D:\\Documenti\\Università\\Progetto ML SII\\dataset\\nicolecarlsonxo\\pubblicitarie\\"
@@ -37,12 +38,17 @@ def getBusinessAccount(data):
     else:
         return 0
 
-def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione):
+# Restituisce l'output del modello di object detection 
+def getOggetti(img,model) :
+    return model.detect(img)
+
+def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione, base_path_yolo):
     PATH_PUBBLICITARIE=path_pubblicitarie
     PATH_NON_PUBBLICITARIE=path_non_pubblicitarie
     DEST=path_destinazione
 
     L = instaloader.Instaloader()
+    model = YoloModel(base_path_yolo)
 
     # Prendo tutte le immagini nella directory
     files=[f for f in glob.glob(PATH_PUBBLICITARIE+"*.jpg")]
@@ -79,6 +85,10 @@ def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione)
 
         # Controllo se è un account verificato
         vet.append(getBusinessAccount(data))
+
+        # TODO: Da finire!
+        # Controllo gli oggetti all'interno della foto
+        print(getOggetti(img,model))
 
         output_writer.writerow(vet)
         json_file.close()
