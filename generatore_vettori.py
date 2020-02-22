@@ -1,3 +1,5 @@
+# Da caricare sul drive, nella stessa directory del colab
+
 import glob
 import json
 import csv
@@ -5,9 +7,9 @@ import instaloader
 from instaloader import Post
 
 # Parametri 
-PATH_PUBBLICITARIE="D:\\Documenti\\Università\\Progetto ML SII\\dataset\\nicolecarlsonxo\\pubblicitarie\\"
-PATH_NON_PUBBLICITARIE=""
-DEST="D:\\Documenti\\Università\\Progetto ML SII\\"
+# PATH_PUBBLICITARIE="D:\\Documenti\\Università\\Progetto ML SII\\dataset\\nicolecarlsonxo\\pubblicitarie\\"
+# PATH_NON_PUBBLICITARIE=""
+# DEST="D:\\Documenti\\Università\\Progetto ML SII\\"
 
 # ==== CONFIGURAZIONE VETTORE ===========
 P_PAGINE_TAGGATE = 0 # Numero di pagine taggate nella didascalia
@@ -24,8 +26,8 @@ def getTagDidascalia(data):
     return didascalia.count("@")
 
 # Restituisce il numero di pagina taggate nella foto
-def getTagFoto(data):
-    post = Post.from_shortcode(L.context,"B8zEcEMIXIJ")
+def getTagFoto(data, loader):
+    post = Post.from_shortcode(loader.context,"B8zEcEMIXIJ")
     return len(post.tagged_users)
 
 # Restituisce 1 se è un account business, 0 altrimenti
@@ -35,47 +37,52 @@ def getBusinessAccount(data):
     else:
         return 0
 
-# Inizio script
-L = instaloader.Instaloader()
-# Prendo tutte le immagini nella directory
-files=[f for f in glob.glob(PATH_PUBBLICITARIE+"*.jpg")]
+def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione):
+    PATH_PUBBLICITARIE=path_pubblicitarie
+    PATH_NON_PUBBLICITARIE=path_non_pubblicitarie
+    DEST=path_destinazione
 
-#Prova
-files=files[0:2]
+    L = instaloader.Instaloader()
 
-# Apro il file csv di destinazione (dataset)
-try:
-    output_file= open(DEST+'vettori.csv', mode='w', newline='')
-except:
-    print("Errore nell'apertura del file di output.")
-output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    # Prendo tutte le immagini nella directory
+    files=[f for f in glob.glob(PATH_PUBBLICITARIE+"*.jpg")]
 
-i=0
-for img in files:
-    print("Immagine " + str(i))
-    vet=[] # Riga da scrivere nel file
-    filename=getJsonName(img)
-    print("\t File: " + filename)
-    # Apro il json corrispondente alla foto analizzata
+    #Prova con pochi input
+    files=files[0:2]
+
+    # Apro il file csv di destinazione (dataset)
     try:
-        json_file= open(filename)
+        output_file= open(DEST+'vettori.csv', mode='w', newline='')
     except:
-        print("Errore nell'apertura del file")
-        break
-    data = json.load(json_file)
-    
-    # Controllo pagine taggate nella didascalia
-    vet.append(getTagDidascalia(data))
+        print("Errore nell'apertura del file di output.")
+    output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-    # Controllo delle pagine taggate nella foto
-    vet.append(getTagFoto(data))
+    i=0
+    for img in files:
+        print("Immagine " + str(i))
+        vet=[] # Riga da scrivere nel file
+        filename=getJsonName(img)
+        print("\t File: " + filename)
+        # Apro il json corrispondente alla foto analizzata
+        try:
+            json_file= open(filename)
+        except:
+            print("Errore nell'apertura del file")
+            break
+        data = json.load(json_file)
+        
+        # Controllo pagine taggate nella didascalia
+        vet.append(getTagDidascalia(data))
 
-    # Controllo se è un account verificato
-    vet.append(getBusinessAccount(data))
+        # Controllo delle pagine taggate nella foto
+        vet.append(getTagFoto(data,L))
 
-    output_writer.writerow(vet)
-    json_file.close()
-    i=i+1
-    
-output_file.close()
-print("File scritto.")
+        # Controllo se è un account verificato
+        vet.append(getBusinessAccount(data))
+
+        output_writer.writerow(vet)
+        json_file.close()
+        i=i+1
+        
+    output_file.close()
+    print("File scritto in " + DEST)
