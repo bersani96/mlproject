@@ -61,6 +61,8 @@ def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione,
         output_file= open(DEST+'vettori.csv', mode='w', newline='')
     except:
         print("Errore nell'apertura del file di output.")
+        exit()
+        
     output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
     i=0
