@@ -51,61 +51,73 @@ def getLocalizzato(data):
         return 0
 
 def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione, base_path_yolo):
-    PATH_PUBBLICITARIE=path_pubblicitarie
-    PATH_NON_PUBBLICITARIE=path_non_pubblicitarie
-    DEST=path_destinazione
 
     L = instaloader.Instaloader()
     model = YoloModel(base_path_yolo)
 
-    # Prendo tutte le immagini nella directory
-    files=[f for f in glob.glob(PATH_PUBBLICITARIE+"*.jpg")]
-
-    #Prova con pochi input
-    files=files[0:2]
-
     # Apro il file csv di destinazione (dataset)
     try:
-        output_file= open(DEST+'vettori.csv', mode='w', newline='')
+        output_file= open(path_destinazione+'vettori.csv', mode='w', newline='')
     except:
         print("Errore nell'apertura del file di output.")
         exit()
 
     output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-    i=0
-    for img in files:
-        print("Immagine " + str(i))
-        vet=[] # Riga da scrivere nel file
-        filename=getJsonName(img)
-        print("\t File: " + filename)
-        # Apro il json corrispondente alla foto analizzata
-        try:
-            json_file= open(filename)
-        except:
-            print("Errore nell'apertura del file")
-            break
-        data = json.load(json_file)
-        
-        # Controllo pagine taggate nella didascalia
-        vet.append(getTagDidascalia(data))
+    # Due iterazioni: pubblicitarie e non pubblicitarie
+    for j in range(0,2): 
+        if j==0:
+            # Pubblicitarie
+            print("Analizzo le immagini pubblicitarie in " + path_pubblicitarie)
+            path=path_pubblicitarie
+        else:
+            # Non pubblicitarie
+             print("Analizzo le immagini non pubblicitarie in " + path_non_pubblicitarie)
+             path=path_non_pubblicitarie
 
-        # Controllo delle pagine taggate nella foto
-        vet.append(getTagFoto(data,L))
+        # Prendo tutte le immagini nella directory
+        files=[f for f in glob.glob(path+"*.jpg")]
 
-        # Controllo se è un account verificato
-        vet.append(getBusinessAccount(data))
+        #Prova con pochi input
+        files=files[0:2]
 
-        # Controllo se il post è geolocalizzato
-        vet.append(getLocalizzato(data))
+        i=0
+        for img in files:
+            print("Immagine " + str(i))
+            vet=[] # Riga da scrivere nel file
+            filename=getJsonName(img)
+            print("\t File: " + filename)
+            # Apro il json corrispondente alla foto analizzata
+            try:
+                json_file= open(filename)
+            except:
+                print("Errore nell'apertura del file")
+                break
+            data = json.load(json_file)
+            
+            # Controllo pagine taggate nella didascalia
+            vet.append(getTagDidascalia(data))
 
-        # TODO: Da finire!
-        # Controllo gli oggetti all'interno della foto
-        print(getOggetti(img,model))
+            # Controllo delle pagine taggate nella foto
+            vet.append(getTagFoto(data,L))
 
-        output_writer.writerow(vet)
-        json_file.close()
-        i=i+1
+            # Controllo se è un account verificato
+            vet.append(getBusinessAccount(data))
+
+            # Controllo se il post è geolocalizzato
+            vet.append(getLocalizzato(data))
+
+            # TODO: Da finire!
+            # Controllo gli oggetti all'interno della foto
+            boxes, scores, classes, nums = getOggetti(img,model)
+            print("Oggetti nella foto: " + str(nums[0]))
+
+            # Aggiungo etichetta
+            vet.append(j)
+
+            output_writer.writerow(vet)
+            json_file.close()
+            i=i+1
         
     output_file.close()
-    print("File scritto in " + DEST)
+    print("File scritto in " + path_destinazione)
