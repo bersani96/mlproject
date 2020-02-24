@@ -24,7 +24,11 @@ def getJsonName(img):
 
 # Restituisce il numero di pagine taggate nella didascalia
 def getTagDidascalia(data):
-    didascalia = data['node']['edge_media_to_caption']['edges'][0]['node']['text']
+    didascalia=""
+    try: 
+        didascalia = data['node']['edge_media_to_caption']['edges'][0]['node']['text']
+    except:
+        pass
     return didascalia.count("@")
 
 # Restituisce il numero di pagina taggate nella foto
@@ -96,7 +100,7 @@ def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione,
                 json_file= open(filename)
             except:
                 print("Errore nell'apertura del file")
-                break
+                continue # Passo al prossimo item
             data = json.load(json_file)
             
             # Controllo pagine taggate nella didascalia
