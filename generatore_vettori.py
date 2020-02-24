@@ -43,6 +43,13 @@ def getBusinessAccount(data):
 def getOggetti(img,model) :
     return model.detect(img)
 
+# Restituisce se il post è localizzato o meno (1 se localizzato, 0 altrimenti)
+def getLocalizzato(data):
+    if 'location' in data['node']:
+        return 1
+    else:
+        return 0
+
 def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione, base_path_yolo):
     PATH_PUBBLICITARIE=path_pubblicitarie
     PATH_NON_PUBBLICITARIE=path_non_pubblicitarie
@@ -63,7 +70,7 @@ def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione,
     except:
         print("Errore nell'apertura del file di output.")
         exit()
-        
+
     output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
     i=0
@@ -88,6 +95,9 @@ def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione,
 
         # Controllo se è un account verificato
         vet.append(getBusinessAccount(data))
+
+        # Controllo se il post è geolocalizzato
+        vet.append(getLocalizzato(data))
 
         # TODO: Da finire!
         # Controllo gli oggetti all'interno della foto
