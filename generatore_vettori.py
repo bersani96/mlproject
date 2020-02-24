@@ -13,9 +13,10 @@ from yolo_model import YoloModel
 # DEST="D:\\Documenti\\Università\\Progetto ML SII\\"
 
 # ==== CONFIGURAZIONE VETTORE ===========
-P_PAGINE_TAGGATE = 0 # Numero di pagine taggate nella didascalia
-P_PAGINE_TAGGATE_FOTO = 1 # Numero di pagine taggate nella foto
-P_BUSINESS_ACCOUNT = 2 # Se è un account business
+# P_PAGINE_TAGGATE = 0 # Numero di pagine taggate nella didascalia
+# P_PAGINE_TAGGATE_FOTO = 1 # Numero di pagine taggate nella foto
+# P_BUSINESS_ACCOUNT = 2 # Se è un account business
+# P_GEOLOC = 3 # Se il post è geolocalizzato
 
 # Restituisce il file del json corrispondente
 def getJsonName(img):
