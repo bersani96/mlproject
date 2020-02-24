@@ -64,6 +64,10 @@ def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione,
 
     output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
+    # Prima riga: feature names
+    vet=["Pag. taggate nella didascalia", "Pag. taggate nella foto", "Business account", "Geolocalizzazione", "Pubblicitario"]
+    output_writer.writerow(vet)
+
     # Due iterazioni: pubblicitarie e non pubblicitarie
     for j in range(0,2): 
         if j==0:
