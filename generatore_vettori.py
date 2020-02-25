@@ -6,6 +6,7 @@ import csv
 import instaloader
 from instaloader import Post
 from yolo_model import YoloModel
+import numpy as np
 
 # Parametri 
 # PATH_PUBBLICITARIE="D:\\Documenti\\Università\\Progetto ML SII\\dataset\\nicolecarlsonxo\\pubblicitarie\\"
@@ -17,6 +18,24 @@ from yolo_model import YoloModel
 # P_PAGINE_TAGGATE_FOTO = 1 # Numero di pagine taggate nella foto
 # P_BUSINESS_ACCOUNT = 2 # Se è un account business
 # P_GEOLOC = 3 # Se il post è geolocalizzato
+
+P_SCORE_PERSONA = 5
+P_X1_PERSONA = 6
+P_Y1_PERSONA = 7
+P_X2_PERSONA = 8
+P_Y2_PERSONA = 9
+
+P_SCORE_BORSA = 11
+P_X1_BORSA = 12
+P_Y1_BORSA = 13
+P_X2_BORSA = 14
+P_Y2_BORSA = 15
+
+P_SCORE_OROLOGIO = 17
+P_X1_OROLOGIO = 18
+P_Y1_OROLOGIO = 19
+P_X2_OROLOGIO = 20
+P_Y2_OROLOGIO = 21
 
 # Restituisce il file del json corrispondente
 def getJsonName(img):
@@ -58,6 +77,7 @@ def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione,
 
     L = instaloader.Instaloader()
     model = YoloModel(base_path_yolo)
+    
 
     # Apro il file csv di destinazione (dataset)
     try:
@@ -69,7 +89,7 @@ def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione,
     output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
     # Prima riga: feature names
-    vet=["Pag. taggate nella didascalia", "Pag. taggate nella foto", "Business account", "Geolocalizzazione", "Pubblicitario"]
+    vet=["Pag. taggate nella didascalia", "Pag. taggate nella foto", "Business account", "Geolocalizzazione","Score persona", "X1 persona", "Y1 persona", "X2 persona", "Y2 persona","Score borsa", "X1 borsa", "Y1 borsa", "X2 borsa", "Y2 borsa","Score orologio", "X1 orologio", "Y1 orologio", "X2 orologio", "Y2 orologio",  "Pubblicitario"]
     output_writer.writerow(vet)
 
     # Due iterazioni: pubblicitarie e non pubblicitarie
@@ -87,7 +107,7 @@ def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione,
         files=[f for f in glob.glob(path+"*.jpg")]
 
         #Prova con pochi input
-        files=files[0:2]
+        files=files[0:10]
 
         i=0
         for img in files:
@@ -118,7 +138,54 @@ def generaVettori(path_pubblicitarie, path_non_pubblicitarie, path_destinazione,
             # TODO: Da finire!
             # Controllo gli oggetti all'interno della foto
             boxes, scores, classes, nums = getOggetti(img,model)
-            print("Oggetti nella foto: " + str(nums[0]))
+            class_names=model.getClassNames()
+            for iter in range(nums[0]):
+                print('\t{}, {}, {}'.format(class_names[int(classes[0][iter])],
+                np.array(scores[0][iter]),
+                np.array(boxes[0][iter])))
+            
+            persona=[]
+            borsa=[]
+            orologio=[]
+            for iter in range(nums[0]):
+                print("Iter: " + str(iter) + ". Controllo persona: ")
+                if len(persona)==0 and class_names[int(classes[0][iter])] == "person":
+                    print("Iter: " + str(iter) + ". Persona trovata: ")
+                    persona.append( np.array(scores[0][iter]))
+                    print("Score: " + str(np.array(scores[0][iter])))
+                    persona.append( np.array(boxes[0][iter][0] ))
+                    persona.append( np.array(boxes[0][iter][1] ))
+                    persona.append( np.array(boxes[0][iter][2] ))
+                    persona.append( np.array(boxes[0][iter][3] ))
+                print("Iter: " + str(iter) + ". Controllo borsa: ")
+                if len(borsa)==0 and class_names[int(classes[0][iter])] == "handbag":
+                    print("Iter: " + str(iter) + ". Borsa trovata: ")
+                    borsa.append(np.array(scores[0][iter]))
+                    print("Score: " + str(np.array(scores[0][iter])))
+                    borsa.append(np.array(boxes[0][iter][0] ))
+                    borsa.append( np.array(boxes[0][iter][1] ))
+                    borsa.append( np.array(boxes[0][iter][2] ))
+                    borsa.append( np.array(boxes[0][iter][3] ))
+                print("Iter: " + str(iter) + ". Controllo orologio: ")
+                if len(orologio)==0 and class_names[int(classes[0][iter])] == "clock":
+                    print("Iter: " + str(iter) + ". Orologio trovato: ")
+                    orologio.append(np.array(scores[0][iter]))
+                    print("Score: " + str(np.array(scores[0][iter])))
+                    orologio.append( np.array(boxes[0][iter][0] ))
+                    orologio.append( np.array(boxes[0][iter][1] ))
+                    orologio.append( np.array(boxes[0][iter][2] ))
+                    orologio.append( np.array(boxes[0][iter][3] ))
+            # Li aggiungo nel vettore
+            if len(persona)==0:
+                persona=[0,0,0,0,0]
+            if len(borsa)==0:
+                borsa=[0,0,0,0,0]
+            if len(orologio)==0:
+                orologio=[0,0,0,0,0]
+            vet+=persona
+            vet+=borsa
+            vet+=orologio
+
 
             # Aggiungo etichetta
             vet.append(j)
