@@ -33,20 +33,18 @@ class YoloModel:
 
         physical_devices = tf.config.experimental.list_physical_devices('GPU')
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
+        if FLAGS.tiny:
+            self.yolo = YoloV3Tiny(classes=FLAGS.num_classes)
+        else:
+            self.yolo = YoloV3(classes=FLAGS.num_classes)
+        self.yolo.load_weights(FLAGS.weights).expect_partial()
+        logging.info('weights loaded')
+
+        logging.info('classes loaded')
 
     def detect(self, imagePath):
         # Detect image
         FLAGS.image = imagePath
-
-        if FLAGS.tiny:
-            yolo = YoloV3Tiny(classes=FLAGS.num_classes)
-        else:
-            yolo = YoloV3(classes=FLAGS.num_classes)
-            
-        yolo.load_weights(FLAGS.weights).expect_partial()
-        logging.info('weights loaded')
-
-        logging.info('classes loaded')
 
         img_raw = tf.image.decode_image(
             open(FLAGS.image, 'rb').read(), channels=3)
@@ -55,7 +53,7 @@ class YoloModel:
         img = transform_images(img, FLAGS.size)
 
         t1 = time.time()
-        boxes, scores, classes, nums = yolo(img)
+        boxes, scores, classes, nums = self.yolo(img)
         t2 = time.time()
         logging.info('time: {}'.format(t2 - t1))
 
