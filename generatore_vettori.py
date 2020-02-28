@@ -52,14 +52,17 @@ def getTagDidascalia(data):
 
 # Restituisce il numero di pagina taggate nella foto
 def getTagFoto(data, loader):
-    post = Post.from_shortcode(loader.context,"B8zEcEMIXIJ")
+    post = Post.from_shortcode(loader.context,data['node']['shortcode'])
     return len(post.tagged_users)
 
 # Restituisce 1 se è un account business, 0 altrimenti
 def getBusinessAccount(data):
-    if data['node']['owner']['is_business_account'] == True:
-        return 1
-    else:
+    try :
+        if data['node']['owner']['is_business_account'] == True:
+            return 1
+        else:
+            return 0
+    except:
         return 0
 
 # Restituisce l'output del modello di object detection 
