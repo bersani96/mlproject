@@ -14,9 +14,17 @@ from yolov3_tf2.dataset import transform_images, load_tfrecord_dataset
 from yolov3_tf2.utils import draw_outputs
 
 class YoloModel:
+    """
+    Classe che rappresenta un modello Yolo di object detection.
+    """
     
     def __init__(self, base_path):
-        # Initialize detector
+        """
+        Costruttore del modello.
+
+        Parametri:
+            base_path (str): path della directory di yolo.
+        """
         self.BASE_PATH=base_path
 
         flags.DEFINE_string('classes', self.BASE_PATH+'data/coco.names', 'path to classes file')
@@ -45,7 +53,12 @@ class YoloModel:
         
 
     def detect(self, imagePath):
-        # Detect image
+        """
+        Metodo per effettuare la detection.
+
+        Parametri:
+            imagePath (str): path dell'immagine sui cui fare detection.
+        """
         FLAGS.image = imagePath
         img_raw = tf.image.decode_image(
             open(FLAGS.image, 'rb').read(), channels=3)
@@ -61,4 +74,7 @@ class YoloModel:
         return boxes, scores, classes, nums
 
     def getClassNames(self):
+        """
+        Metodo che restituisce i nomi delle classi di output del modello.
+        """
         return self.class_names

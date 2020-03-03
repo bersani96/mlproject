@@ -10,15 +10,23 @@ import numpy as np
 
 
 class GeneratoreVettori():
+    """
+    Classe che modella un generatore di vettori di feature.
+
+    Attributi:
+        L (Instaloader): instaloader per ottenere dati e informazioni sul post instagram.
+        model (YoloModel): modello di object detection.
+    """
 
     def __init__(self, base_path_yolo):
+        """
+        Costruttore.
+
+        Parametri:
+            base_path_yolo (str): path della directory yolo. Deve terminare con /
+        """
         self.L = instaloader.Instaloader()
         self.model = YoloModel(base_path_yolo)
-
-    # Parametri 
-    # PATH_PUBBLICITARIE="D:\\Documenti\\Università\\Progetto ML SII\\dataset\\nicolecarlsonxo\\pubblicitarie\\"
-    # PATH_NON_PUBBLICITARIE=""
-    # DEST="D:\\Documenti\\Università\\Progetto ML SII\\"
 
     # ==== CONFIGURAZIONE VETTORE ===========
     # P_PAGINE_TAGGATE = 0 # Numero di pagine taggate nella didascalia
@@ -44,15 +52,25 @@ class GeneratoreVettori():
     # P_X2_OROLOGIO = 17
     # P_Y2_OROLOGIO = 18
 
-    # Restituisce il file del json corrispondente
     def getJsonName(self, img):
+        """
+        Restituisce il nome del file json corrispondente alla foto.
+
+        Parametri: 
+            img (str): path dell'immagine
+        """
         if "test_" in img:
             return img.split(".jpg")[0]+".json"      # Immagini di test 
         else:
             return img.split("UTC")[0] + "UTC.json"     # Immagini di training
 
-    # Restituisce il numero di pagine taggate nella didascalia
     def getTagDidascalia(self,data):
+        """
+        Restituisce il numero di pagine taggate nella didascalia
+
+        Parametri:
+            data (dict): dizionario generato da file json che descrive il post instagram.
+        """
         didascalia=""
         try: 
             didascalia = data['node']['edge_media_to_caption']['edges'][0]['node']['text']
@@ -60,8 +78,14 @@ class GeneratoreVettori():
             print("Errore: didascalia non trovata.")
         return didascalia.count("@")
 
-    # Restituisce il numero di pagina taggate nella foto
     def getTagFoto(self, data, loader):
+        """
+        Restituisce il numero di pagina taggate nella foto
+
+        Parametri:
+            data (dict): dizionario generato da file json che descrive il post instagram.
+            loader (Instaloader): instaloader per ottenere informazioni sul post instagram.
+        """
         try:
             post = Post.from_shortcode(loader.context,data['node']['shortcode'])
         except:
@@ -69,8 +93,13 @@ class GeneratoreVettori():
             return 0
         return len(post.tagged_users)
 
-    # Restituisce 1 se è un account business, 0 altrimenti
     def getBusinessAccount(self, data):
+        """
+        Restituisce 1 se è un account business, 0 altrimenti
+
+        Parametri:
+            data (dict): dizionario generato da file json che descrive il post instagram.
+        """
         try :
             if data['node']['owner']['is_business_account'] == True:
                 return 1
@@ -79,24 +108,48 @@ class GeneratoreVettori():
         except:
             return 0
 
-    # Restituisce l'output del modello di object detection 
     def getOggetti(self, img,model) :
+        """
+        Restituisce l'output del modello di object detection.
+
+        Parametri:
+            img (str): path dell'immagine su cui fare object detection.
+            model (YoloModel): modello da usare.
+        """
         return model.detect(img)
 
-    # Restituisce se il post è localizzato o meno (1 se localizzato, 0 altrimenti)
     def getLocalizzato(self, data):
+        """
+        Restituisce se il post è localizzato o meno (1 se localizzato, 0 altrimenti).
+
+        Parametri:
+            data (dict): dizionario generato da file json che descrive il post instagram.
+        """
         if 'location' in data['node']:
             return 1
         else:
             return 0
 
     def generaSingoloVettore(self,img):
+        """
+        Metodo che genera il vettore di feature che descrive l'immagine passata come parametro.
+
+        Parametri:
+            img (str): path dell'immagine.
+        """
         vet = self.generaSingoloVettoreAux(img,0)    # Etichetta fittizia
         return vet[:-1]     # Tolgo l'etichetta
         
 
 
     def generaSingoloVettoreAux(self, img, etichetta):
+        """
+        Metodo che genera il vettore di feature che descrive l'immagine passata come parametro di cui già si conosce l'etichetta. Utilizzabile per generare il traning set.
+        
+        Parametri:
+            img (str): path dell'immagine
+            etichetta (int): etichetta dell'immagine. 0 = PUBBLICITARIO, 1 = NON PUBBLICITARIO
+        """
         vet=[] # Riga da scrivere nel file
         filename=self.getJsonName(img)
         print("\t File: " + filename)
@@ -178,9 +231,18 @@ class GeneratoreVettori():
         return vet
 
     def generaVettori(self, path_pubblicitarie, path_non_pubblicitarie, path_destinazione):
+        """
+        Metodo che, a partire da un insieme di immagini già classificate, genera un file contenente i corrispondenti vettori.
+
+        Parametri:
+            path_pubblicitarie (str): path della directory contenente le immagini pubblicitarie.
+            path_non_pubblicitarie (str): path della directory contenente le immagini non pubblicitarie.
+            path_destinazione (str): path della directory di destinazione in cui andare a scrivere il file di output.
+        """
         # Apro il file csv di destinazione (dataset)
+        outputFilename = 'vettori.csv'
         try:
-            output_file= open(path_destinazione+'vettori.csv', mode='w', newline='')
+            output_file= open(path_destinazione+outputFilename, mode='w', newline='')
         except:
             print("Errore nell'apertura del file di output.")
             exit()
@@ -217,4 +279,4 @@ class GeneratoreVettori():
                 i=i+1
             
         output_file.close()
-        print("File scritto in " + path_destinazione)
+        print("File scritto in " + path_destinazione + outputFilename)
